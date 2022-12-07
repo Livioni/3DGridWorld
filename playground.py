@@ -1,22 +1,10 @@
-import matplotlib.pyplot as plt
-from matplotlib import cm
-import numpy as np
-
-plt.style.use('_mpl-gallery')
-
-# Make data
-X = np.arange(-5, 5, 0.25)
-Y = np.arange(-5, 5, 0.25)
-X, Y = np.meshgrid(X, Y)
-R = np.sqrt(X**2 + Y**2)
-Z = np.sin(R)
-
-# Plot the surface
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-ax.plot_surface(X, Y, Z, vmin=Z.min() * 2, cmap=cm.Blues)
-raise
-ax.set(xticklabels=[],
-       yticklabels=[],
-       zticklabels=[])
-
-plt.show()
+import gym
+env = gym.make("GridWorld-v0")
+observation = env.reset()
+for _ in range(1000):
+       action = 0  # User-defined policy function
+       observation, reward, terminated, info = env.step(action)
+       env.my_render()
+       if terminated:
+              observation = env.reset()
+env.close()

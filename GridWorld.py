@@ -12,41 +12,43 @@ def peaks(x,y):
 
 class GridEnv(gym.Env):
     def __init__(self):
-        self.x_scaled_axis = np.linspace(-2.4,2.4,49)
-        self.y_scaled_axis = np.linspace(-2.4,2.4,49)
-        self.scaled_z = np.zeros([49,49],dtype=np.float32)
-        for i in range(len(self.x_scaled_axis)):
+        self.border = 31 #设定边界范围 
+        self.x_scaled_axis = np.linspace(-2,2,self.border)
+        self.y_scaled_axis = np.linspace(-2,2,self.border)
+        self.scaled_z = np.zeros([self.border,self.border],dtype=np.float32)
+        for i in range(len(self.x_scaled_axis)):#计算peaks高度
             for j in range(len(self.y_scaled_axis)):
                 self.scaled_z[i][j] = peaks(self.x_scaled_axis[i],self.y_scaled_axis[j])
-        self.z = np.round(10 * (self.scaled_z-np.min(self.scaled_z)))
-
+        self.z = np.round(2 * (self.scaled_z-np.min(self.scaled_z))) #乘倍数放缩然后四舍五入
+        
         #petrol spot
-        self.petrol_x = np.array([8,20,25,40],dtype=np.int16)
-        self.petrol_y = np.array([10,15,32,30],dtype=np.int16)
+        self.petrol_x = np.array([8,20,25,14],dtype=np.int16)#设定4个充电桩
+        self.petrol_y = np.array([10,15,22,5],dtype=np.int16)
         self.petrol_z = np.zeros_like(self.petrol_x)
         for i in range(len(self.petrol_x)):
-            self.petrol_z[i] = self.z[self.petrol_x[i]][self.petrol_y[i]] + 1  
-        #terminal spot
-        self.terminal_x = np.array([25,17,36,44],dtype=np.int16)
-        self.terminal_y = np.array([30,9,21,39],dtype=np.int16)
+            self.petrol_z[i] = self.z[self.petrol_x[i]][self.petrol_y[i]] + 1  #在地形上面一个点
+        #terminal spot 
+        self.terminal_x = np.array([25,11,6,17],dtype=np.int16)#设定4个需要观察的点
+        self.terminal_y = np.array([12,9,21,19],dtype=np.int16)
         self.terminal_z = np.zeros_like(self.terminal_x)
         for i in range(len(self.terminal_x)):
-            self.terminal_z[i] = self.z[self.terminal_x[i]][self.terminal_y[i]] + 1 
-
-        self.terminal_mask = [0,0,0,0]
+            self.terminal_z[i] = self.z[self.terminal_x[i]][self.terminal_y[i]] + 1 #在地形上面一个点
+        
+        self.x_loc = None
+        self.terminal_mask = [0,0,0,0] #用于记录已经探索到的观察点
         self.low_observation = np.zeros(10)
-        self.high_observation = np.max(self.z) * np.ones(10)
+        self.high_observation = 1000 * np.ones(10)
         self.observation_space = spaces.Box(low=self.low_observation, high=self.high_observation,dtype=np.int32)
         self.action_space = spaces.Discrete(6)
 
     def step(self,action):
-        #上下左右前后
-        obs = self._check_obs(self.x_loc,self.y_loc,self.z_loc)
-        if obs[action] == 1:
+        #6个动作分别为 上下左右前后
+        obs = self._check_obs(self.x_loc,self.y_loc,self.z_loc)#检查动作是否为有效动作，即有没有触碰地形
+        if obs[action] == 1:#如果触碰地形
             self.steps += 1
             self.state = np.hstack((self.x_loc,self.y_loc,self.z_loc,self.obs,self.steps))
             self.done = 0
-            self.reward = -1
+            self.reward = -2
             return self.state, self.reward, self.done, {}
         elif action == 0:
             self.z_loc += 1
@@ -61,7 +63,7 @@ class GridEnv(gym.Env):
         elif action == 5:
             self.y_loc += 1
         else:
-            raise "void action"
+            raise "wrong action"
         self.steps += 1
         self.obs = self._check_obs(self.x_loc,self.y_loc,self.z_loc)
         self.reward = self._check_reward(self.x_loc,self.y_loc,self.z_loc)  
@@ -103,7 +105,7 @@ class GridEnv(gym.Env):
             obs[2] = 1
         elif self.z[x-1][y] >= z:
             obs[2] = 1
-        if x+1 >= 49:
+        if x+1 >= self.border:
             obs[3] = 1
         elif self.z[x+1][y] >= z:
             obs[3] = 1
@@ -111,7 +113,7 @@ class GridEnv(gym.Env):
             obs[4] = 1
         elif self.z[x][y-1] >= z:
             obs[4] = 1
-        if y+1 >= 49:
+        if y+1 >= self.border:
             obs[5] = 1
         elif self.z[x][y+1] >= z:
             obs[5] = 1 
@@ -119,12 +121,13 @@ class GridEnv(gym.Env):
 
     def reset(self):
         #随机初始点
-        # self.x_loc = random.randint(0,48)
-        # self.y_loc = random.randint(0,48)
-        # self.z_loc = random.randint(self.z[self.x_loc][self.y_loc],np.max(self.z))
-        self.x_loc = 24
-        self.y_loc = 24
-        self.z_loc = int(self.z[self.x_loc][self.y_loc] + 2)
+        self.x_loc = random.randint(0,30)
+        self.y_loc = random.randint(0,30)
+        self.z_loc = random.randint(self.z[self.x_loc][self.y_loc],np.max(self.z))
+        # self.x_loc = 20
+        # self.y_loc = 20
+        # self.z_loc = int(self.z[self.x_loc][self.y_loc] + 2)
+        self.terminal_mask = [0,0,0,0]
         self.steps = 0
         self.reward = 0
         self.done = 0
@@ -133,8 +136,8 @@ class GridEnv(gym.Env):
         return self.state
 
     def render(self):
-        x = np.linspace(0,49,49)
-        y = np.linspace(0,49,49)
+        x = np.linspace(0,self.border-1,self.border)
+        y = np.linspace(0,self.border-1,self.border)
         X, Y = np.meshgrid(x, y)
         # Plot the surface
         fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
@@ -143,24 +146,17 @@ class GridEnv(gym.Env):
         rgb = ls.shade(self.z, cmap=cm.gist_earth, vert_exag=0.1, blend_mode='soft')
         surf = ax.plot_surface(X, Y, self.z, rstride=1, cstride=1, facecolors=rgb,
                             linewidth=0, antialiased=False, alpha=0.6,shade=False)
-
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
         ax.set_zlabel('Z Label')
-        #scatter 
-        petrol_x = np.array([8,20,25,40],dtype=np.int16)
-        petrol_y = np.array([10,15,32,30],dtype=np.int16)
-        petrol_z = np.zeros_like(petrol_x)
-        for i in range(len(petrol_x)):
-            petrol_z[i] = self.z[petrol_x[i]][petrol_y[i]] + 1                
+        #scatter              
         colors = ('r', 'r', 'r', 'r') 
-        ax.scatter(petrol_x, petrol_y, petrol_z, s=36, c=colors)
-        terminal_x = np.array([25,17,36,44],dtype=np.int16)
-        terminal_y = np.array([30,9,21,39],dtype=np.int16)
-        terminal_z = np.zeros_like(petrol_x)
-        for i in range(len(petrol_x)):
-            terminal_z[i] = self.z[terminal_x[i]][terminal_y[i]] + 1  
+        ax.scatter(self.petrol_x, self.petrol_y, self.petrol_z, s=36, c=colors)
         colorsr = ('b','b','b','b')
-        ax.scatter(terminal_x, terminal_y, terminal_z, s=36, c=colorsr)
+        ax.scatter(self.terminal_x, self.terminal_y, self.terminal_z, s=36, c=colorsr)
+        if self.x_loc is not None:
+            ax.scatter(self.x_loc,self.y_loc,self.z_loc,s=40,c='k')
         plt.show()
 
+grid = GridEnv()
+grid.render()

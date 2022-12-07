@@ -38,7 +38,7 @@ def parse_args():
     # Algorithm specific arguments
     parser.add_argument("--env-id", type=str, default="GridWorld-v0",
         help="the id of the environment")
-    parser.add_argument("--total-timesteps", type=int, default=500000,
+    parser.add_argument("--total-timesteps", type=int, default=10000000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=2.5e-4,
         help="the learning rate of the optimizer")
@@ -93,7 +93,7 @@ class QNetwork(nn.Module):
         )
 
     def forward(self, x):
-        return self.network(x)
+        return self.network(torch.tensor(x,dtype=torch.float32))
 
 
 def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
