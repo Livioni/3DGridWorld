@@ -20,7 +20,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
         help="the name of this experiment")
-    parser.add_argument("--seed", type=int, default=1,
+    parser.add_argument("--seed", type=int, default=3407,
         help="seed of the experiment")
     parser.add_argument("--torch-deterministic", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="if toggled, `torch.backends.cudnn.deterministic=False`")
@@ -92,8 +92,16 @@ class QNetwork(nn.Module):
             nn.Linear(84, env.single_action_space.n),
         )
 
+        self.checkpoint_path = "models/" + "Qnetwork_seed_" + str(args.seed) + ".pth"
+
     def forward(self, x):
         return self.network(torch.tensor(x,dtype=torch.float32))
+
+    def save(self):
+        torch.save(self.network.state_dict(), self.checkpoint_path)
+
+    def load(self):
+        self.network.load_state_dict(torch.load(self.checkpoint_path, map_location=lambda storage, loc: storage))
 
 
 def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
@@ -201,6 +209,7 @@ if __name__ == "__main__":
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+                q_network.save()
 
             # update the target network
             if global_step % args.target_network_frequency == 0:

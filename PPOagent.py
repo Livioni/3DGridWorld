@@ -18,7 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
         help="the name of this experiment")
-    parser.add_argument("--seed", type=int, default=3407,
+    parser.add_argument("--seed", type=int, default=3406,
         help="seed of the experiment")
     parser.add_argument("--torch-deterministic", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="if toggled, `torch.backends.cudnn.deterministic=False`")
@@ -36,11 +36,11 @@ def parse_args():
     # Algorithm specific arguments
     parser.add_argument("--env-id", type=str, default="GridWorld-v0",
         help="the id of the environment")
-    parser.add_argument("--total-timesteps", type=int, default=1000000,
+    parser.add_argument("--total-timesteps", type=int, default=10000000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=2.5e-4,
         help="the learning rate of the optimizer")
-    parser.add_argument("--num-envs", type=int, default=1,
+    parser.add_argument("--num-envs", type=int, default=4,
         help="the number of parallel game environments")
     parser.add_argument("--num-steps", type=int, default=128,
         help="the number of steps to run in each environment per policy rollout")
@@ -129,11 +129,11 @@ class Agent(nn.Module):
 
     def save(self):
         torch.save(self.critic.state_dict(), self.checkpoint_path_1)
-        torch.save(self.actor_mean.state_dict(), self.checkpoint_path_2)
+        torch.save(self.actor.state_dict(), self.checkpoint_path_2)
 
     def load(self):
         self.critic.load_state_dict(torch.load(self.checkpoint_path_1, map_location=lambda storage, loc: storage))
-        self.actor_mean.load_state_dict(torch.load(self.checkpoint_path_2, map_location=lambda storage, loc: storage))
+        self.actor.load_state_dict(torch.load(self.checkpoint_path_2, map_location=lambda storage, loc: storage))
 
 if __name__ == "__main__":
     args = parse_args()
