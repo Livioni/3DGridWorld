@@ -22,24 +22,26 @@ class GridEnv(gym.Env):
         self.z = np.round(1 * (self.scaled_z-np.min(self.scaled_z))) #乘倍数放缩然后四舍五入
         
         #petrol spot
-        # self.petrol_x = np.array([2,4,6,8],dtype=np.int16)#设定4个充电桩
-        # self.petrol_y = np.array([6,3,8,1],dtype=np.int16)
         self.petrol_x = np.array([5],dtype=np.int16)#设定1个充电桩
         self.petrol_y = np.array([5],dtype=np.int16)
         self.petrol_z = np.zeros_like(self.petrol_x)
         for i in range(len(self.petrol_x)):
             self.petrol_z[i] = self.z[self.petrol_x[i]][self.petrol_y[i]] + 1  #在地形上面一个点
         #terminal spot 
-        self.terminal_x = np.array([1,3,5,7],dtype=np.int16)#设定4个需要观察的点
-        self.terminal_y = np.array([8,4,6,2],dtype=np.int16)
+        self.terminal_x = np.array([3,5],dtype=np.int16)#设定4个需要观察的点
+        self.terminal_y = np.array([4,6],dtype=np.int16)
         self.terminal_z = np.zeros_like(self.terminal_x)
         for i in range(len(self.terminal_x)):
             self.terminal_z[i] = self.z[self.terminal_x[i]][self.terminal_y[i]] + 1 #在地形上面一个点
         
         self.x_loc = None
-        self.terminal_mask = [0,0,0,0] #用于记录已经探索到的观察点
-        self.low_observation = np.zeros(9)
-        self.high_observation = self.border * np.ones(9)
+        self.crashed = 0
+        self.x_trace = []
+        self.y_trace = []
+        self.z_trace = []
+        self.terminal_mask = [0,0] #用于记录已经探索到的观察点
+        self.low_observation = np.zeros(18)
+        self.high_observation = self.border * np.ones(18)
         self.observation_space = spaces.Box(low=self.low_observation, high=self.high_observation,dtype=np.int32)
         self.action_space = spaces.Discrete(6)
 
@@ -48,25 +50,36 @@ class GridEnv(gym.Env):
         obs = self._check_obs(self.x_loc,self.y_loc,self.z_loc)#检查动作是否为有效动作，即有没有触碰地形
         if obs[action] == 1:#如果触碰地形
             self.steps += 1
+            # self.state = np.hstack((self.x_loc,self.y_loc,self.z_loc,self.obs))
             self.state = np.hstack((self.x_loc,self.y_loc,self.z_loc,self.obs))
             self.done = 0
+            self.crashed += 1
             self.reward = -2
             return self.state, self.reward, self.done, {}
         elif action == 0:
             self.z_loc += 1
+            # print("向上")
         elif action == 1:
             self.z_loc -= 1
+            # print("向下")
         elif action == 2:
             self.y_loc -= 1
+            # print("向左")
         elif action == 3:
             self.y_loc += 1
+            # print("向右")
         elif action == 4:
             self.x_loc -= 1
+            # print("向前")
         elif action == 5:
             self.x_loc += 1
+            # print("向后")
         else:
             raise "wrong action"
         self.steps += 1
+        self.x_trace.append(self.x_loc)
+        self.y_trace.append(self.y_loc)
+        self.z_trace.append(self.z_loc)
         self.obs = self._check_obs(self.x_loc,self.y_loc,self.z_loc)
         self.reward = self._check_reward(self.x_loc,self.y_loc,self.z_loc)  
         self.done = self._check_done(self.x_loc,self.y_loc,self.z_loc) 
@@ -132,6 +145,9 @@ class GridEnv(gym.Env):
         # self.y_loc = 5
         # self.z_loc = int(self.z[self.x_loc][self.y_loc]+1)
         
+        self.x_trace = []
+        self.y_trace = []
+        self.z_trace = []
         self.terminal_mask = [0,0,0,0]
         self.steps = 0
         self.obs = self._check_obs(self.x_loc,self.y_loc,self.z_loc)
@@ -155,16 +171,17 @@ class GridEnv(gym.Env):
         #scatter              
         colors = ('r') 
         ax.scatter(self.petrol_x, self.petrol_y, self.petrol_z, s=36, c=colors)
-        colorsr = ('b','b','b','b')
+        colorsr = ('b','b')
         ax.scatter(self.terminal_x, self.terminal_y, self.terminal_z, s=36, c=colorsr)
         if self.x_loc is not None:
             ax.scatter(self.x_loc,self.y_loc,self.z_loc,s=40,c='k')
+            ax.plot(self.x_trace,self.y_trace,self.z_trace)
         ax.view_init(elev=30., azim=-130)
         # ax.view_init(elev=90., azim=0)
-        # plt.show()
-        plt.draw()
-        plt.pause(0.001)  
-        plt.close()  
+        plt.show()
+        # plt.draw()
+        # plt.pause(0.001)  
+        # plt.close()  
 
 # grid = GridEnv()
 # grid.my_render()

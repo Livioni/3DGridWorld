@@ -1,0 +1,25 @@
+{
+    "os": "macOS-10.16-x86_64-i386-64bit",
+    "python": "3.9.15",
+    "heartbeatAt": "2022-12-09T13:03:27.254866",
+    "startedAt": "2022-12-09T13:03:25.616762",
+    "docker": null,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [
+        "--track",
+        "True"
+    ],
+    "state": "running",
+    "program": "/Users/livionmbp/Documents/GitHub/Sources/3DGridWorld/PPOagent.py",
+    "codePath": "PPOagent.py",
+    "git": {
+        "remote": "https://github.com/Livioni/3DGridWorld.git",
+        "commit": "ba1f11abc2e9e0e96e756f6639524c78ea54268a"
+    },
+    "email": "livion_i@icloud.com",
+    "root": "/Users/livionmbp/Documents/GitHub/Sources/3DGridWorld",
+    "host": "penghaosongdeMacBook-Pro.local",
+    "username": "livionmbp",
+    "executable": "/Users/livionmbp/opt/anaconda3/envs/cleanrl/bin/python"
+}

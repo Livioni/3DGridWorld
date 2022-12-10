@@ -158,8 +158,10 @@ if __name__ == "__main__":
             # env.my_render()
             sum_reward += reward
             if done:
-                print(f"episode={ep}, episodic_return={info['episode']['r']}")    
+                print(f"episode={ep}, episodic_return={info['episode']['r']}," f"episodic_length={info['episode']['l']}")    
                 print('Sum reward = ',sum_reward)
+                env.my_render()
                 break
+        print('crashed',env.crashed)
 
     env.close()

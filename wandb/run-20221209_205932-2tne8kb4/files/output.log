@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/Users/livionmbp/Documents/GitHub/Sources/3DGridWorld/PPOagent.py", line 168, in <module>
+    envs = gym.vector.SyncVectorEnv(
+  File "/Users/livionmbp/opt/anaconda3/envs/cleanrl/lib/python3.9/site-packages/gym/vector/sync_vector_env.py", line 57, in __init__
+    self.envs = [env_fn() for env_fn in env_fns]
+  File "/Users/livionmbp/opt/anaconda3/envs/cleanrl/lib/python3.9/site-packages/gym/vector/sync_vector_env.py", line 57, in <listcomp>
+    self.envs = [env_fn() for env_fn in env_fns]
+  File "/Users/livionmbp/Documents/GitHub/Sources/3DGridWorld/PPOagent.py", line 80, in thunk
+    env = gym.make(env_id)
+  File "/Users/livionmbp/opt/anaconda3/envs/cleanrl/lib/python3.9/site-packages/gym/envs/registration.py", line 676, in make
+    return registry.make(id, **kwargs)
+  File "/Users/livionmbp/opt/anaconda3/envs/cleanrl/lib/python3.9/site-packages/gym/envs/registration.py", line 520, in make
+    return spec.make(**kwargs)
+  File "/Users/livionmbp/opt/anaconda3/envs/cleanrl/lib/python3.9/site-packages/gym/envs/registration.py", line 140, in make
+    env = cls(**_kwargs)
+  File "/Users/livionmbp/opt/anaconda3/envs/cleanrl/lib/python3.9/site-packages/gym/envs/grid_world/GridWorld.py", line 45, in __init__
+    self.observation_space = spaces.Box(low=self.low_observation, high=self.high_observation,dtype=np.int32)
+  File "/Users/livionmbp/opt/anaconda3/envs/cleanrl/lib/python3.9/site-packages/gym/spaces/box.py", line 76, in __init__
+    assert high.shape == shape, "high.shape doesn't match provided shape"
+AssertionError: high.shape doesn't match provided shape
