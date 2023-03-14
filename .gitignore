@@ -1,3 +1,4 @@
 runs
 wandb
 .vscode
+.DS_Store
